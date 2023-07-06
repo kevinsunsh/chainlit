@@ -36,5 +36,4 @@ async def main(message: str):
         language="sql",
         content=content,
         prompt=fromatted_prompt,
-        llm_settings=cl.LLMSettings(model_name=model_name, **settings),
     ).send()

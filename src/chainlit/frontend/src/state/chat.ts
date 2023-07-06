@@ -3,16 +3,6 @@ import { Socket } from 'socket.io-client';
 import { IMember } from './user';
 import { IElement } from './element';
 
-export interface ILLMSettings {
-  model_name: string;
-  stop: string[] | string;
-  temperature: number;
-  max_tokens: number;
-  top_p: number;
-  frequency_penalty: number;
-  presence_penalty: number;
-}
-
 export interface IChat {
   id: number;
   createdAt: number | string;
@@ -34,7 +24,6 @@ export interface IMessage {
   indent?: number;
   isError?: boolean;
   prompt?: string;
-  llmSettings?: ILLMSettings;
 }
 
 export interface IToken {

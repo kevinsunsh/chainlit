@@ -11,7 +11,6 @@ from chainlit.config import config
 from chainlit.telemetry import trace
 from chainlit.version import __version__
 from chainlit.logger import logger
-from chainlit.types import LLMSettings
 from chainlit.action import Action
 from chainlit.element import (
     Image,
@@ -108,7 +107,6 @@ def sleep(duration: int):
 
 __all__ = [
     "user_session",
-    "LLMSettings",
     "Action",
     "Pdf",
     "Image",

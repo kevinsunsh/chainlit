@@ -23,10 +23,6 @@ class LocalClient(BaseClient):
         self.lock = asyncio.Lock()
 
     def before_write(self, variables: Dict):
-        if "llmSettings" in variables:
-            # Sqlite doesn't support json fields, so we need to serialize it.
-            variables["llmSettings"] = json.dumps(variables["llmSettings"])
-
         if "forIds" in variables:
             # Sqlite doesn't support list of primitives, so we need to serialize it.
             variables["forIds"] = json.dumps(variables["forIds"])
@@ -35,9 +31,7 @@ class LocalClient(BaseClient):
             del variables["tempId"]
 
     def after_read(self, variables: Dict):
-        if "llmSettings" in variables:
-            # Sqlite doesn't support json fields, so we need to parse it.
-            variables["llmSettings"] = json.loads(variables["llmSettings"])
+        pass
 
     async def is_project_member(self):
         return True
@@ -78,10 +72,6 @@ class LocalClient(BaseClient):
         c = await Conversation.prisma().find_unique_or_raise(
             where={"id": conversation_id}, include={"messages": True, "elements": True}
         )
-
-        for m in c.messages:
-            if m.llmSettings:
-                m.llmSettings = json.loads(m.llmSettings)
 
         for e in c.elements:
             if e.forIds:

@@ -8,7 +8,6 @@ from chainlit.telemetry import trace_event
 from chainlit.context import get_emitter
 from chainlit.config import config
 from chainlit.types import (
-    LLMSettings,
     AskSpec,
     AskFileSpec,
     AskFileResponse,
@@ -56,7 +55,6 @@ class MessageBase(ABC):
         content: str = None,
         language: str = None,
         prompt: str = None,
-        llm_settings: LLMSettings = None,
     ):
         """
         Update a message already sent to the UI.
@@ -71,8 +69,6 @@ class MessageBase(ABC):
             self.language = language
         if prompt:
             self.prompt = prompt
-        if llm_settings:
-            self.llmSettings = llm_settings
 
         msg_dict = self.to_dict()
 
@@ -134,7 +130,6 @@ class Message(MessageBase):
         content (str): The content of the message.
         author (str, optional): The author of the message, this will be used in the UI. Defaults to the chatbot name (see config).
         prompt (str, optional): The prompt used to generate the message. If provided, enables the prompt playground for this message.
-        llm_settings (LLMSettings, optional): Settings of the LLM used to generate the prompt. This is useful for debug purposes in the prompt playground.
         language (str, optional): Language of the code is the content is code. See https://react-code-blocks-rajinwonderland.vercel.app/?path=/story/codeblock--supported-languages for a list of supported languages.
         indent (int, optional): If positive, the message will be nested in the UI.
         actions (List[Action], optional): A list of actions to send with the message.
@@ -146,7 +141,6 @@ class Message(MessageBase):
         content: str,
         author: str = config.ui.name,
         prompt: str = None,
-        llm_settings: LLMSettings = None,
         language: str = None,
         indent: int = 0,
         actions: List[Action] = [],
@@ -159,13 +153,6 @@ class Message(MessageBase):
         self.indent = indent
         self.actions = actions
         self.elements = elements
-        self.llmSettings = None
-
-        if llm_settings is None and prompt is not None:
-            self.llmSettings = LLMSettings().to_dict()
-
-        if llm_settings:
-            self.llmSettings = llm_settings.to_dict()
 
         super().__post_init__()
 
@@ -176,7 +163,6 @@ class Message(MessageBase):
             "content": self.content,
             "author": self.author,
             "prompt": self.prompt,
-            "llmSettings": self.llmSettings,
             "language": self.language,
             "indent": self.indent,
         }

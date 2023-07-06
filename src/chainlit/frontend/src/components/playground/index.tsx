@@ -2,7 +2,7 @@ import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
-import { playgroundSettingsState, playgroundState } from 'state/playground';
+import { playgroundState } from 'state/playground';
 import { useEffect, useState } from 'react';
 import {
   Editor,
@@ -34,9 +34,7 @@ export default function Playground() {
   const client = useRecoilValue(clientState);
   const playground = useRecoilValue(playgroundState);
   const setPlayground = useSetRecoilState(playgroundState);
-  const settings = useRecoilValue(playgroundSettingsState);
   const userEnv = useRecoilValue(userEnvState);
-  const setPlaygroundSettings = useSetRecoilState(playgroundSettingsState);
   const [state, setState] = useState(EditorState.createEmpty());
   const [loading, setLoading] = useState(false);
 
@@ -46,9 +44,6 @@ export default function Playground() {
         ContentState.createFromText(playground.prompt)
       );
       setState(insertCompletion(_state, playground.completion));
-    }
-    if (playground?.llmSettings) {
-      setPlaygroundSettings({ ...playground.llmSettings });
     }
   }, [playground]);
 

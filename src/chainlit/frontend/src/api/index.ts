@@ -1,5 +1,5 @@
 import { IPageInfo, IPagination } from 'components/dataset/table';
-import { IChat, ILLMSettings } from 'state/chat';
+import { IChat } from 'state/chat';
 import { IDatasetFilters } from 'state/dataset';
 import { IElement } from 'state/element';
 import { Role, IMember } from 'state/user';
@@ -40,13 +40,12 @@ export class ChainlitClient {
 
   getCompletion = async (
     prompt: string,
-    settings: ILLMSettings,
     userEnv = {}
   ) => {
     const res = await fetch(`${httpEndpoint}/completion`, {
       headers: this.headers,
       method: 'POST',
-      body: JSON.stringify({ prompt, settings, userEnv })
+      body: JSON.stringify({ prompt, userEnv })
     });
 
     if (!res.ok) {

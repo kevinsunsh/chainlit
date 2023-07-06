@@ -160,7 +160,6 @@ class CloudClient(BaseClient):
         humanFeedback
         language
         prompt
-        llmSettings
         authorIsUser
         createdAt
       }
@@ -278,8 +277,8 @@ class CloudClient(BaseClient):
         variables["conversationId"] = c_id
 
         mutation = """
-        mutation ($conversationId: ID!, $author: String!, $content: String!, $language: String, $prompt: String, $llmSettings: Json, $isError: Boolean, $indent: Int, $authorIsUser: Boolean, $waitForAnswer: Boolean, $createdAt: StringOrFloat) {
-            createMessage(conversationId: $conversationId, author: $author, content: $content, language: $language, prompt: $prompt, llmSettings: $llmSettings, isError: $isError, indent: $indent, authorIsUser: $authorIsUser, waitForAnswer: $waitForAnswer, createdAt: $createdAt) {
+        mutation ($conversationId: ID!, $author: String!, $content: String!, $language: String, $prompt: String, $isError: Boolean, $indent: Int, $authorIsUser: Boolean, $waitForAnswer: Boolean, $createdAt: StringOrFloat) {
+            createMessage(conversationId: $conversationId, author: $author, content: $content, language: $language, prompt: $prompt, isError: $isError, indent: $indent, authorIsUser: $authorIsUser, waitForAnswer: $waitForAnswer, createdAt: $createdAt) {
                 id
             }
         }
@@ -293,8 +292,8 @@ class CloudClient(BaseClient):
 
     async def update_message(self, message_id: int, variables: Dict[str, Any]) -> bool:
         mutation = """
-        mutation ($messageId: ID!, $author: String!, $content: String!, $language: String, $prompt: String, $llmSettings: Json) {
-            updateMessage(messageId: $messageId, author: $author, content: $content, language: $language, prompt: $prompt, llmSettings: $llmSettings) {
+        mutation ($messageId: ID!, $author: String!, $content: String!, $language: String, $prompt: String) {
+            updateMessage(messageId: $messageId, author: $author, content: $content, language: $language, prompt: $prompt) {
                 id
             }
         }

@@ -22,7 +22,6 @@ export default function Buttons({ message }: Props) {
         onClick={() => {
           if (!message.prompt) return;
           setPlayground({
-            llmSettings: message.llmSettings,
             prompt: message.prompt,
             completion: message.content!
           });
