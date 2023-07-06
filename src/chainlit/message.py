@@ -72,8 +72,8 @@ class MessageBase(ABC):
 
         msg_dict = self.to_dict()
 
-        if self.emitter.client and self.id:
-            await self.emitter.client.update_message(self.id, msg_dict)
+        if self.emitter.backend and self.id:
+            await self.emitter.backend.update_message(self.id, msg_dict)
 
         await self.emitter.update_message(msg_dict)
 
@@ -86,8 +86,8 @@ class MessageBase(ABC):
         """
         trace_event("remove_message")
 
-        if self.emitter.client and self.id:
-            await self.emitter.client.delete_message(self.id)
+        if self.emitter.backend and self.id:
+            await self.emitter.backend.delete_message(self.id)
 
         await self.emitter.delete_message(self.to_dict())
 

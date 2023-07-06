@@ -81,13 +81,10 @@ export default function Playground() {
   };
 
   const submit = async () => {
-    if (!settings) {
-      return;
-    }
     const prompt = state.getCurrentContent().getPlainText();
     try {
       setLoading(true);
-      const completion = await client.getCompletion(prompt, settings, userEnv);
+      const completion = await client.getCompletion(prompt, userEnv);
       setState(insertCompletion(state, completion));
     } catch (err) {
       if (err instanceof Error) {

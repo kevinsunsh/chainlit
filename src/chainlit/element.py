@@ -8,7 +8,7 @@ from enum import Enum
 import json
 
 from chainlit.context import get_emitter
-from chainlit.client.base import BaseClient
+from chainlit.backend.base import BaseBackend
 from chainlit.telemetry import trace_event
 from chainlit.types import ElementType, ElementDisplay, ElementSize
 
@@ -83,12 +83,12 @@ class Element:
         else:
             raise ValueError("Must provide path or content to load element")
 
-    async def persist(self, client: BaseClient):
+    async def persist(self, backend: BaseBackend):
         if not self.url and self.content and not self.id:
-            self.url = await client.upload_element(
+            self.url = await backend.upload_element(
                 content=self.content, mime=type_to_mime[self.type]
             )
-        element = await client.upsert_element(self.to_dict())
+        element = await backend.upsert_element(self.to_dict())
         return element
 
     async def before_emit(self, element: Dict) -> Dict:
@@ -109,9 +109,9 @@ class Element:
         if for_id:
             self.for_ids.append(for_id)
 
-        # We have a client, persist the element
-        if self.emitter.client:
-            element = await self.persist(self.emitter.client)
+        # We have a backend, persist the element
+        if self.emitter.backend:
+            element = await self.persist(self.emitter.backend)
             self.id = element and element.get("id")
 
         elif not self.url and not self.content:

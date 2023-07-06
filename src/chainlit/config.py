@@ -10,7 +10,7 @@ from chainlit.version import __version__
 
 if TYPE_CHECKING:
     from chainlit.action import Action
-    from chainlit.client.base import BaseClient
+    from chainlit.backend.base import BaseBackend
 
 PACKAGE_ROOT = os.path.dirname(__file__)
 
@@ -62,7 +62,7 @@ generated_by = "{__version__}"
 """
 
 chainlit_prod_url = os.environ.get("CHAINLIT_PROD_URL")
-chainlit_server = "https://cloud.chainlit.io"
+chainlit_server = "http://0.0.0.0:9000"
 
 
 DEFAULT_HOST = "0.0.0.0"

@@ -5,6 +5,7 @@ import os
 
 import asyncio
 import aiofiles
+import aiohttp
 
 from chainlit.client.base import PaginatedResponse, PageInfo
 
@@ -147,6 +148,20 @@ class LocalClient(BaseClient):
 
         self.before_write(variables)
 
+        body = {"message": variables['content']}
+
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                f"{config.chainlit_server}/chat",
+                json=body,
+                headers=self.headers,
+            ) as r:
+                if not r.ok:
+                    reason = await r.text()
+                    logger.error(f"Failed to chat with backend: {reason}")
+                    return None
+                json_res = await r.json()
+        
         res = await Message.prisma().create(data=variables)
         return res.id
 

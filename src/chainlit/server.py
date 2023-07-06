@@ -176,9 +176,11 @@ html_template = get_html_template()
 
 
 @app.post("/completion")
-async def completion(completion: CompletionRequest):
+async def completion(request: Request, completion: CompletionRequest):
     """Handle a completion request from the prompt playground."""
-    return PlainTextResponse(content="test")
+    client = await get_client(request)
+    res = await client.completion(prompt=completion.prompt)
+    return PlainTextResponse(content=res)
 
 
 @app.get("/project/settings")
@@ -415,9 +417,9 @@ async def process_message(session: Session, author: str, input_str: str):
 
         await emitter.task_start()
 
-        if session["client"]:
+        if session["backend"]:
             # If cloud is enabled, persist the message
-            await session["client"].create_message(
+            await session["backend"].create_message(
                 {
                     "author": author,
                     "content": input_str,
@@ -425,9 +427,7 @@ async def process_message(session: Session, author: str, input_str: str):
                 }
             )
 
-        if config.code.on_message:
-            # If no langchain agent is available, call the on_message function provided by the developer
-            await config.code.on_message(input_str)
+        await Message(author=author, content=input_str).send()
     except InterruptedError:
         pass
     except Exception as e:

@@ -22,12 +22,12 @@ class CloudClient(BaseClient):
             "Authorization": access_token,
             "content-type": "application/json",
         }
-        graphql_endpoint = f"{config.chainlit_server}/api/graphql"
-        self.graphql_client = GraphqlClient(
-            endpoint=graphql_endpoint, headers=self.headers
-        )
+        # graphql_endpoint = f"{config.chainlit_server}/api/graphql"
+        # self.graphql_client = GraphqlClient(
+        #    endpoint=graphql_endpoint, headers=self.headers
+        # )
 
-    def query(self, query: str, variables: Dict[str, Any] = {}) -> Dict[str, Any]:
+    # def query(self, query: str, variables: Dict[str, Any] = {}) -> Dict[str, Any]:
         """
         Execute a GraphQL query.
 
@@ -35,7 +35,7 @@ class CloudClient(BaseClient):
         :param variables: A dictionary of variables for the query.
         :return: The response data as a dictionary.
         """
-        return self.graphql_client.execute_async(query=query, variables=variables)
+        # return self.graphql_client.execute_async(query=query, variables=variables)
 
     def check_for_errors(self, response: Dict[str, Any], raise_error: bool = False):
         if "errors" in response:
@@ -45,7 +45,7 @@ class CloudClient(BaseClient):
             return True
         return False
 
-    def mutation(self, mutation: str, variables: Dict[str, Any] = {}) -> Dict[str, Any]:
+    # def mutation(self, mutation: str, variables: Dict[str, Any] = {}) -> Dict[str, Any]:
         """
         Execute a GraphQL mutation.
 
@@ -53,80 +53,71 @@ class CloudClient(BaseClient):
         :param variables: A dictionary of variables for the mutation.
         :return: The response data as a dictionary.
         """
-        return self.graphql_client.execute_async(query=mutation, variables=variables)
+    #     return self.graphql_client.execute_async(query=mutation, variables=variables)
 
     async def get_member_role(
         self,
     ):
-        data = {"projectId": self.project_id}
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                f"{config.chainlit_server}/api/role",
-                json=data,
-                headers=self.headers,
-            ) as r:
-                if not r.ok:
-                    reason = await r.text()
-                    logger.error(f"Failed to get user role. {r.status}: {reason}")
-                    return False
-                json = await r.json()
-                return json.get("role", "ANONYMOUS")
+        return "OWNER"
+        # data = {"projectId": self.project_id}
+        # async with aiohttp.ClientSession() as session:
+        #     async with session.post(
+        #         f"{config.chainlit_server}/api/role",
+        #         json=data,
+        #         headers=self.headers,
+        #     ) as r:
+        #         if not r.ok:
+        #             reason = await r.text()
+        #             logger.error(f"Failed to get user role. {r.status}: {reason}")
+        #             return False
+        #         json = await r.json()
+        #         return json.get("role", "ANONYMOUS")
 
     async def is_project_member(self) -> bool:
         role = await self.get_member_role()
         return role != "ANONYMOUS"
 
     async def get_project_members(self):
-        query = """query ($projectId: String!) {
-                    projectMembers(projectId: $projectId) {
-                    edges {
-                        cursor
-                        node {
-                        role
-                        user {
-                            email
-                            name
-                        }
-                        }
-                    }
-                    }
-                }"""
-        variables = {"projectId": self.project_id}
-        res = await self.query(query, variables)
-        self.check_for_errors(res, raise_error=True)
+        # query = """query ($projectId: String!) {
+        #             projectMembers(projectId: $projectId) {
+        #             edges {
+        #                 cursor
+        #                 node {
+        #                 role
+        #                 user {
+        #                     email
+        #                     name
+        #                 }
+        #                 }
+        #             }
+        #             }
+        #         }"""
+        # variables = {"projectId": self.project_id}
+        # res = await self.query(query, variables)
+        # self.check_for_errors(res, raise_error=True)
 
         members = []
 
-        for edge in res["data"]["projectMembers"]["edges"]:
-            node = edge["node"]
-            role = node["role"]
-            name = node["user"]["name"]
-            email = node["user"]["email"]
-            members.append({"role": role, "name": name, "email": email})
+        # for edge in res["data"]["projectMembers"]["edges"]:
+        # node = edge["node"]
+        role = 'OWNER'# node["role"]
+        name = 'kevin' # node["user"]["name"]
+        email = 'sunzhipeng8@gmail.com'# node["user"]["email"]
+        members.append({"role": role, "name": name, "email": email})
 
         return members
 
     async def create_conversation(self) -> int:
+        from prisma.models import Conversation
+
         # If we run multiple send concurrently, we need to make sure we don't create multiple conversations.
         async with self.lock:
             if self.conversation_id:
                 return self.conversation_id
 
-            mutation = """
-            mutation ($projectId: String!, $sessionId: String) {
-                createConversation(projectId: $projectId, sessionId: $sessionId) {
-                    id
-                }
-            }
-            """
-            variables = {"projectId": self.project_id}
-            res = await self.mutation(mutation, variables)
+            res = await Conversation.prisma().create(data={})
 
-            if self.check_for_errors(res):
-                logger.warning("Could not create conversation.")
-                return None
-
-            return int(res["data"]["createConversation"]["id"])
+            return res.id
 
     async def get_conversation_id(self):
         self.conversation_id = await self.create_conversation()
@@ -134,120 +125,75 @@ class CloudClient(BaseClient):
         return self.conversation_id
 
     async def delete_conversation(self, conversation_id: int):
-        mutation = """mutation ($id: ID!) {
-    deleteConversation(id: $id) {
-      id
-    }
-  }"""
-        variables = {"id": conversation_id}
-        res = await self.mutation(mutation, variables)
-        self.check_for_errors(res, raise_error=True)
+        from prisma.models import Conversation
+
+        await Conversation.prisma().delete(where={"id": conversation_id})
 
         return True
 
     async def get_conversation(self, conversation_id: int):
-        query = """query ($id: ID!) {
-    conversation(id: $id) {
-      id
-      createdAt
-      messages {
-        id
-        isError
-        indent
-        author
-        content
-        waitForAnswer
-        humanFeedback
-        language
-        prompt
-        authorIsUser
-        createdAt
-      }
-      elements {
-        id
-        conversationId
-        type
-        name
-        url
-        display
-        language
-        size
-        forIds
-      }
-    }
-  }"""
-        variables = {
-            "id": conversation_id,
-        }
-        res = await self.query(query, variables)
-        self.check_for_errors(res, raise_error=True)
+        from prisma.models import Conversation
 
-        return res["data"]["conversation"]
+        c = await Conversation.prisma().find_unique_or_raise(
+            where={"id": conversation_id}, include={"messages": True, "elements": True}
+        )
+
+        for e in c.elements:
+            if e.forIds:
+                e.forIds = json.loads(e.forIds)
+
+        return json.loads(c.json())
 
     async def get_conversations(self, pagination, filter):
-        query = """query (
-        $first: Int
-        $projectId: String!
-        $cursor: String
-        $withFeedback: Int
-        $authorEmail: String
-        $search: String
-    ) {
-        conversations(
-        first: $first
-        cursor: $cursor
-        projectId: $projectId
-        withFeedback: $withFeedback
-        authorEmail: $authorEmail
-        search: $search
-        ) {
-        pageInfo {
-            endCursor
-            hasNextPage
-        }
-        edges {
-            cursor
-            node {
-            id
-            createdAt
-            elementCount
-            messageCount
-            author {
-                name
-                email
-            }
-            messages {
-                content
-            }
-            }
-        }
-        }
-    }"""
+        from prisma.models import Conversation
 
-        variables = {
-            "projectId": self.project_id,
-            "first": pagination.first,
-            "cursor": pagination.cursor,
-            "withFeedback": filter.feedback,
-            "authorEmail": filter.authorEmail,
-            "search": filter.search,
-        }
-        res = await self.query(query, variables)
-        self.check_for_errors(res, raise_error=True)
+        some_messages = {}
 
-        conversations = []
+        if filter.feedback is not None:
+            some_messages["humanFeedback"] = filter.feedback
 
-        for edge in res["data"]["conversations"]["edges"]:
-            node = edge["node"]
-            conversations.append(node)
+        if filter.search is not None:
+            some_messages["content"] = {"contains": filter.search or None}
 
-        page_info = res["data"]["conversations"]["pageInfo"]
+        if pagination.cursor:
+            cursor = {"id": pagination.cursor}
+        else:
+            cursor = None
+
+        conversations = await Conversation.prisma().find_many(
+            take=pagination.first,
+            skip=1 if pagination.cursor else None,
+            cursor=cursor,
+            include={
+                "messages": {
+                    "take": 1,
+                    "where": {
+                        "authorIsUser": True,
+                    },
+                    "orderBy": [
+                        {
+                            "createdAt": "asc",
+                        }
+                    ],
+                }
+            },
+            where={"messages": {"some": some_messages}},
+            order={
+                "createdAt": "desc",
+            },
+        )
+
+        has_more = len(conversations) == pagination.first
+
+        if has_more:
+            end_cursor = conversations[-1].id
+        else:
+            end_cursor = None
+
+        conversations = [json.loads(c.json()) for c in conversations]
 
         return PaginatedResponse(
-            pageInfo=PageInfo(
-                hasNextPage=page_info["hasNextPage"],
-                endCursor=page_info["endCursor"],
-            ),
+            pageInfo=PageInfo(hasNextPage=has_more, endCursor=end_cursor),
             data=conversations,
         )
 
@@ -265,45 +211,39 @@ class CloudClient(BaseClient):
         return True
 
     async def get_message(self):
-        raise NotImplementedError
+        from prisma.models import Message
+
+        res = await Message.prisma().find_first(where={"id": message_id})
+        res = res.dict()
+        self.after_read(res)
+        return res
 
     async def create_message(self, variables: Dict[str, Any]) -> int:
+        from prisma.models import Message
+
         c_id = await self.get_conversation_id()
 
         if not c_id:
             logger.warning("Missing conversation ID, could not persist the message.")
             return None
 
+        variables = variables.copy()
+
         variables["conversationId"] = c_id
 
-        mutation = """
-        mutation ($conversationId: ID!, $author: String!, $content: String!, $language: String, $prompt: String, $isError: Boolean, $indent: Int, $authorIsUser: Boolean, $waitForAnswer: Boolean, $createdAt: StringOrFloat) {
-            createMessage(conversationId: $conversationId, author: $author, content: $content, language: $language, prompt: $prompt, isError: $isError, indent: $indent, authorIsUser: $authorIsUser, waitForAnswer: $waitForAnswer, createdAt: $createdAt) {
-                id
-            }
-        }
-        """
-        res = await self.mutation(mutation, variables)
-        if self.check_for_errors(res):
-            logger.warning("Could not create message.")
-            return None
+        self.before_write(variables)
 
-        return int(res["data"]["createMessage"]["id"])
+        res = await Message.prisma().create(data=variables)
+        return res.id
 
     async def update_message(self, message_id: int, variables: Dict[str, Any]) -> bool:
-        mutation = """
-        mutation ($messageId: ID!, $author: String!, $content: String!, $language: String, $prompt: String) {
-            updateMessage(messageId: $messageId, author: $author, content: $content, language: $language, prompt: $prompt) {
-                id
-            }
-        }
-        """
-        variables["messageId"] = message_id
-        res = await self.mutation(mutation, variables)
+        from prisma.models import Message
 
-        if self.check_for_errors(res):
-            logger.warning("Could not update message.")
-            return False
+        variables = variables.copy()
+
+        self.before_write(variables)
+
+        await Message.prisma().update(data=variables, where={"id": message_id})
 
         return True
 

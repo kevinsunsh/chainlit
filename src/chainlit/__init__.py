@@ -4,7 +4,7 @@ import os
 import asyncio
 
 if TYPE_CHECKING:
-    from chainlit.client.base import BaseClient
+    from chainlit.backend.base import BaseBackend
 
 from chainlit.utils import wrap_user_function
 from chainlit.config import config

@@ -1,8 +1,8 @@
 from typing import List, Literal, Dict
 
 import chainlit as cl
-from chainlit.client.base import (
-    BaseClient,
+from chainlit.backend.base import (
+    BaseBackend,
     UserDict,
     ConversationDict,
     Pagination,
