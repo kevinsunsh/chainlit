@@ -319,7 +319,6 @@ async def connect(sid, environ):
     elif config.project.backend == "local":
         client = LocalClient()
 
-
     # Check user env
     if config.project.user_env:
         # Check if requested user environment variables are provided
@@ -377,6 +376,7 @@ async def connection_successful(sid):
     if config.code.on_chat_start:
         """Call the on_chat_start function provided by the developer."""
         await config.code.on_chat_start()
+
 
 @socket.on("disconnect")
 async def disconnect(sid):

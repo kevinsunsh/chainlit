@@ -179,5 +179,6 @@ def chainlit_init(args=None, **kwargs):
     trace_event("chainlit init")
     init_config(log=True)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     chainlit_run()

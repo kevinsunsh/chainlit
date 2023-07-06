@@ -32,6 +32,7 @@ env_found = load_dotenv(dotenv_path=os.path.join(os.getcwd(), ".env"))
 if env_found:
     logger.info("Loaded .env file")
 
+
 @trace
 def on_message(func: Callable) -> Callable:
     """
@@ -94,6 +95,7 @@ def action_callback(name: str) -> Callable:
         return func
 
     return decorator
+
 
 def sleep(duration: int):
     """
