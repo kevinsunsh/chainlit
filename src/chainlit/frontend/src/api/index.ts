@@ -38,10 +38,7 @@ export class ChainlitClient {
     return res.json();
   };
 
-  getCompletion = async (
-    prompt: string,
-    userEnv = {}
-  ) => {
+  getCompletion = async (prompt: string, userEnv = {}) => {
     const res = await fetch(`${httpEndpoint}/completion`, {
       headers: this.headers,
       method: 'POST',
