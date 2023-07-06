@@ -61,7 +61,7 @@ async def lifespan(app: FastAPI):
         await asyncio.sleep(1)
         webbrowser.open(url)
 
-    if config.project.database == "local":
+    if config.project.backend == "local":
         from prisma import Client, register
 
         client = Client()
@@ -178,37 +178,7 @@ html_template = get_html_template()
 @app.post("/completion")
 async def completion(completion: CompletionRequest):
     """Handle a completion request from the prompt playground."""
-
-    import openai
-
-    trace_event("completion")
-
-    api_key = completion.userEnv.get("OPENAI_API_KEY", os.environ.get("OPENAI_API_KEY"))
-
-    model_name = completion.settings.model_name
-    stop = completion.settings.stop
-    # OpenAI doesn't support an empty stop array, clear it
-    if isinstance(stop, list) and len(stop) == 0:
-        stop = None
-
-    if model_name in ["gpt-3.5-turbo", "gpt-4"]:
-        response = await openai.ChatCompletion.acreate(
-            api_key=api_key,
-            model=model_name,
-            messages=[{"role": "user", "content": completion.prompt}],
-            stop=stop,
-            **completion.settings.to_settings_dict(),
-        )
-        return PlainTextResponse(content=response["choices"][0]["message"]["content"])
-    else:
-        response = await openai.Completion.acreate(
-            api_key=api_key,
-            model=model_name,
-            prompt=completion.prompt,
-            stop=stop,
-            **completion.settings.to_settings_dict(),
-        )
-        return PlainTextResponse(content=response["choices"][0]["text"])
+    return PlainTextResponse(content="test")
 
 
 @app.get("/project/settings")
@@ -318,7 +288,6 @@ async def serve(path: str):
 
 def need_session(id: str):
     """Return the session with the given id."""
-
     session = sessions.get(id)
     if not session:
         raise ValueError("Session not found")
@@ -337,7 +306,7 @@ async def connect(sid, environ):
         trace_event("no_access_token")
         logger.error("Connection refused: No access token provided")
         return False
-    elif authorization and config.project.id and config.project.database == "cloud":
+    elif authorization and config.project.id and config.project.backend == "cloud":
         # Create the cloud client
         client = CloudClient(
             project_id=config.project.id,
@@ -347,12 +316,9 @@ async def connect(sid, environ):
         if not is_project_member:
             logger.error("Connection refused: You are not a member of this project")
             return False
-    elif config.project.database == "local":
+    elif config.project.backend == "local":
         client = LocalClient()
-    elif config.project.database == "custom":
-        if not config.code.client_factory:
-            raise ValueError("Client factory not provided")
-        client = await config.code.client_factory()
+
 
     # Check user env
     if config.project.user_env:
@@ -412,16 +378,6 @@ async def connection_successful(sid):
         """Call the on_chat_start function provided by the developer."""
         await config.code.on_chat_start()
 
-    if config.code.lc_factory:
-        """Instantiate the langchain agent and store it in the session."""
-        agent = await config.code.lc_factory()
-        session["agent"] = agent
-
-    if config.code.llama_index_factory:
-        llama_instance = await config.code.llama_index_factory()
-        session["llama_instance"] = llama_instance
-
-
 @socket.on("disconnect")
 async def disconnect(sid):
     if sid in sessions:
@@ -452,7 +408,6 @@ async def stop(sid):
 
 async def process_message(session: Session, author: str, input_str: str):
     """Process a message from the user."""
-
     try:
         emitter = ChainlitEmitter(session)
         emitter_var.set(emitter)
@@ -470,45 +425,7 @@ async def process_message(session: Session, author: str, input_str: str):
                 }
             )
 
-        langchain_agent = session.get("agent")
-        llama_instance = session.get("llama_instance")
-
-        if langchain_agent:
-            from chainlit.lc.agent import run_langchain_agent
-
-            # If a langchain agent is available, run it
-            if config.code.lc_run:
-                # If the developer provided a custom run function, use it
-                await config.code.lc_run(
-                    langchain_agent,
-                    input_str,
-                )
-                return
-            else:
-                # Otherwise, use the default run function
-                raw_res, output_key = await run_langchain_agent(
-                    langchain_agent, input_str, use_async=config.code.lc_agent_is_async
-                )
-
-                if config.code.lc_postprocess:
-                    # If the developer provided a custom postprocess function, use it
-                    await config.code.lc_postprocess(raw_res)
-                    return
-                elif output_key is not None:
-                    # Use the output key if provided
-                    res = raw_res[output_key]
-                else:
-                    # Otherwise, use the raw response
-                    res = raw_res
-            # Finally, send the response to the user
-            await Message(author=config.ui.name, content=res).send()
-
-        elif llama_instance:
-            from chainlit.llama_index.run import run_llama
-
-            await run_llama(llama_instance, input_str)
-
-        elif config.code.on_message:
+        if config.code.on_message:
             # If no langchain agent is available, call the on_message function provided by the developer
             await config.code.on_message(input_str)
     except InterruptedError:

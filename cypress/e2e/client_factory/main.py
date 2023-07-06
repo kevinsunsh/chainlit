@@ -64,11 +64,6 @@ class CustomClient(BaseClient):
         raise NotImplementedError
 
 
-@cl.client_factory
-async def client_factory():
-    return CustomClient()
-
-
 @cl.on_chat_start
 async def on_chat_start():
     await cl.Message("Hello").send()

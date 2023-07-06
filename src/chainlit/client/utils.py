@@ -9,14 +9,12 @@ from chainlit.client.cloud import CloudClient
 async def get_client(request: Request) -> BaseClient:
     auth_header = request.headers.get("Authorization")
 
-    db = config.project.database
+    backend = config.project.backend
 
-    if db == "local":
+    if backend == "local":
         client = LocalClient()
-    elif db == "cloud":
+    elif backend == "cloud":
         client = CloudClient(config.project.id, auth_header)
-    elif db == "custom":
-        client = await config.code.client_factory()
     else:
         raise HTTPException(status_code=500, detail="Invalid database type")
 

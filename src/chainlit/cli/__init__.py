@@ -20,7 +20,6 @@ from chainlit.cli.auth import login, logout
 from chainlit.cli.deploy import deploy
 from chainlit.cli.utils import check_file
 from chainlit.telemetry import trace_event
-from chainlit.cache import init_lc_cache
 from chainlit.db import init_local_db, migrate_local_db
 from chainlit.logger import logger
 from chainlit.server import app
@@ -47,9 +46,6 @@ def run_chainlit(target: str):
 
     # Create the chainlit.md file if it doesn't exist
     init_markdown(config.root)
-
-    # Initialize the LangChain cache if installed and enabled
-    init_lc_cache()
 
     # Initialize the local database if configured to use it
     init_local_db()
@@ -103,20 +99,13 @@ def run_chainlit(target: str):
     help="Flag to run in CI mode",
 )
 @click.option(
-    "--no-cache",
-    default=False,
-    is_flag=True,
-    envvar="NO_CACHE",
-    help="Useful to disable third parties cache, such as langchain.",
-)
-@click.option(
     "--db",
     type=click.Choice(["cloud", "local"]),
     help="Useful to control database mode when running CI.",
 )
 @click.option("--host", help="Specify a different host to run the server on")
 @click.option("--port", help="Specify a different port to run the server on")
-def chainlit_run(target, watch, headless, debug, ci, no_cache, db, host, port):
+def chainlit_run(target, watch, headless, debug, ci, db, host, port):
     if host:
         os.environ["CHAINLIT_HOST"] = host
     if port:
@@ -128,7 +117,6 @@ def chainlit_run(target, watch, headless, debug, ci, no_cache, db, host, port):
             config.project.database = db
 
         config.project.enable_telemetry = False
-        no_cache = True
         from chainlit.cli.mock import mock_openai
 
         mock_openai()
@@ -138,7 +126,6 @@ def chainlit_run(target, watch, headless, debug, ci, no_cache, db, host, port):
 
     config.run.headless = headless
     config.run.debug = debug
-    config.run.no_cache = no_cache
     config.run.ci = ci
     config.run.watch = watch
 
@@ -191,3 +178,6 @@ def chainlit_migrate(args=None, **kwargs):
 def chainlit_init(args=None, **kwargs):
     trace_event("chainlit init")
     init_config(log=True)
+
+if __name__ == '__main__':
+    chainlit_run()
