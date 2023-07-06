@@ -148,7 +148,7 @@ class LocalClient(BaseClient):
 
         self.before_write(variables)
 
-        body = {"message": variables['content']}
+        body = {"message": variables["content"]}
 
         async with aiohttp.ClientSession() as session:
             async with session.post(
@@ -161,7 +161,7 @@ class LocalClient(BaseClient):
                     logger.error(f"Failed to chat with backend: {reason}")
                     return None
                 json_res = await r.json()
-        
+
         res = await Message.prisma().create(data=variables)
         return res.id
 

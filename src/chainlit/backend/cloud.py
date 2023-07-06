@@ -27,7 +27,7 @@ class CloudClient(BaseClient):
         #    endpoint=graphql_endpoint, headers=self.headers
         # )
 
-    # def query(self, query: str, variables: Dict[str, Any] = {}) -> Dict[str, Any]:
+        # def query(self, query: str, variables: Dict[str, Any] = {}) -> Dict[str, Any]:
         """
         Execute a GraphQL query.
 
@@ -45,7 +45,7 @@ class CloudClient(BaseClient):
             return True
         return False
 
-    # def mutation(self, mutation: str, variables: Dict[str, Any] = {}) -> Dict[str, Any]:
+        # def mutation(self, mutation: str, variables: Dict[str, Any] = {}) -> Dict[str, Any]:
         """
         Execute a GraphQL mutation.
 
@@ -53,6 +53,7 @@ class CloudClient(BaseClient):
         :param variables: A dictionary of variables for the mutation.
         :return: The response data as a dictionary.
         """
+
     #     return self.graphql_client.execute_async(query=mutation, variables=variables)
 
     async def get_member_role(
@@ -100,9 +101,9 @@ class CloudClient(BaseClient):
 
         # for edge in res["data"]["projectMembers"]["edges"]:
         # node = edge["node"]
-        role = 'OWNER'# node["role"]
-        name = 'kevin' # node["user"]["name"]
-        email = 'sunzhipeng8@gmail.com'# node["user"]["email"]
+        role = "OWNER"  # node["role"]
+        name = "kevin"  # node["user"]["name"]
+        email = "sunzhipeng8@gmail.com"  # node["user"]["email"]
         members.append({"role": role, "name": name, "email": email})
 
         return members
