@@ -1,5 +1,5 @@
 from typing import Dict, TypedDict, Optional, Callable, Any, Union
-from chainlit.client.base import BaseClient
+from chainlit.backend.base import BaseBackend
 from chainlit.types import AskResponse
 
 
@@ -14,14 +14,10 @@ class Session(TypedDict):
     emit: Callable[[str, Any], None]
     # User specific environment variables. Empty if no user environment variables are required.
     user_env: Dict[str, str]
-    # Optional langchain agent
-    agent: Any
-    # Optional llama instance
-    llama_instance: Any
     # Whether the current task should be stopped
     should_stop: bool
     # Optional client to persist messages and files
-    client: Optional[BaseClient]
+    client: Optional[BaseBackend]
 
 
 sessions: Dict[str, Session] = {}

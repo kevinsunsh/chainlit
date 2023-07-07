@@ -7,21 +7,24 @@ import asyncio
 import aiofiles
 import aiohttp
 
-from chainlit.client.base import PaginatedResponse, PageInfo
+from chainlit.backend.base import PaginatedResponse, PageInfo
 
-from .base import BaseClient
+from .base import BaseBackend
 
 from chainlit.logger import logger
 from chainlit.config import config
 from chainlit.element import mime_to_ext
 
 
-class LocalClient(BaseClient):
+class LocalBackend(BaseBackend):
     conversation_id: Optional[str] = None
     lock: asyncio.Lock
 
     def __init__(self):
         self.lock = asyncio.Lock()
+        self.headers = {
+            "content-type": "application/json",
+        }
 
     def before_write(self, variables: Dict):
         if "forIds" in variables:

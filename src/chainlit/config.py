@@ -33,7 +33,7 @@ public = true
 # Uncomment if you want to persist the chats.
 # local will create a backend in your .chainlit directory (requires node.js installed).
 # cloud will use the Chainlit cloud backend.
-# backend = "local"
+backend = "local"
 
 # Whether to enable telemetry (default: true). No personal data is collected.
 enable_telemetry = true

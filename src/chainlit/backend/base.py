@@ -83,7 +83,7 @@ class PaginatedResponse(Generic[T]):
     data: List[T]
 
 
-class BaseClient(ABC):
+class BaseBackend(ABC):
     project_id: str
 
     @abstractmethod

@@ -37,9 +37,9 @@ class MessageBase(ABC):
 
     async def _create(self):
         msg_dict = self.to_dict()
-        if self.emitter.client and not self.id:
+        if self.emitter.backend and not self.id:
             try:
-                self.id = await self.emitter.client.create_message(msg_dict)
+                self.id = await self.emitter.backend.create_message(msg_dict)
                 if self.id:
                     msg_dict["id"] = self.id
             except Exception as e:

@@ -5,13 +5,13 @@ import asyncio
 import aiohttp
 from python_graphql_client import GraphqlClient
 
-from .base import BaseClient, PaginatedResponse, PageInfo
+from .base import BaseBackend, PaginatedResponse, PageInfo
 
 from chainlit.logger import logger
 from chainlit.config import config
 
 
-class CloudClient(BaseClient):
+class CloudBackend(BaseBackend):
     conversation_id: Optional[str] = None
     lock: asyncio.Lock
 

@@ -27,9 +27,9 @@ from chainlit.context import emitter_var, loop_var
 from chainlit.config import config, load_module, reload_config, DEFAULT_HOST
 from chainlit.session import Session, sessions
 from chainlit.user_session import user_sessions
-from chainlit.client.cloud import CloudClient
-from chainlit.client.local import LocalClient
-from chainlit.client.utils import get_client
+from chainlit.backend.cloud import CloudBackend
+from chainlit.backend.local import LocalBackend
+from chainlit.backend.utils import get_backend
 from chainlit.emitter import ChainlitEmitter
 from chainlit.markdown import get_markdown_str
 from chainlit.action import Action
@@ -178,7 +178,7 @@ html_template = get_html_template()
 @app.post("/completion")
 async def completion(request: Request, completion: CompletionRequest):
     """Handle a completion request from the prompt playground."""
-    client = await get_client(request)
+    client = await get_backend(request)
     res = await client.completion(prompt=completion.prompt)
     return PlainTextResponse(content=res)
 
@@ -201,7 +201,7 @@ async def project_settings():
 async def update_feedback(request: Request, update: UpdateFeedbackRequest):
     """Update the human feedback for a particular message."""
 
-    client = await get_client(request)
+    client = await get_backend(request)
     await client.set_human_feedback(
         message_id=update.messageId, feedback=update.feedback
     )
@@ -212,7 +212,7 @@ async def update_feedback(request: Request, update: UpdateFeedbackRequest):
 async def get_project_members(request: Request):
     """Get all the members of a project."""
 
-    client = await get_client(request)
+    client = await get_backend(request)
     res = await client.get_project_members()
     return JSONResponse(content=res)
 
@@ -221,7 +221,7 @@ async def get_project_members(request: Request):
 async def get_member_role(request: Request):
     """Get the role of a member."""
 
-    client = await get_client(request)
+    client = await get_backend(request)
     res = await client.get_member_role()
     return PlainTextResponse(content=res)
 
@@ -230,7 +230,7 @@ async def get_member_role(request: Request):
 async def get_project_conversations(request: Request, payload: GetConversationsRequest):
     """Get the conversations page by page."""
 
-    client = await get_client(request)
+    client = await get_backend(request)
     res = await client.get_conversations(payload.pagination, payload.filter)
     return JSONResponse(content=res.to_dict())
 
@@ -239,7 +239,7 @@ async def get_project_conversations(request: Request, payload: GetConversationsR
 async def get_conversation(request: Request, conversation_id: str):
     """Get a specific conversation."""
 
-    client = await get_client(request)
+    client = await get_backend(request)
     res = await client.get_conversation(int(conversation_id))
     return JSONResponse(content=res)
 
@@ -248,7 +248,7 @@ async def get_conversation(request: Request, conversation_id: str):
 async def get_conversation(request: Request, conversation_id: str, element_id: str):
     """Get a specific conversation."""
 
-    client = await get_client(request)
+    client = await get_backend(request)
     res = await client.get_element(int(conversation_id), int(element_id))
     return JSONResponse(content=res)
 
@@ -257,7 +257,7 @@ async def get_conversation(request: Request, conversation_id: str, element_id: s
 async def delete_conversation(request: Request, payload: DeleteConversationRequest):
     """Delete a conversation."""
 
-    client = await get_client(request)
+    client = await get_backend(request)
     await client.delete_conversation(conversation_id=payload.conversationId)
     return JSONResponse(content={"success": True})
 
@@ -300,7 +300,7 @@ def need_session(id: str):
 async def connect(sid, environ):
     user_env = environ.get("HTTP_USER_ENV")
     authorization = environ.get("HTTP_AUTHORIZATION")
-    client = None
+    backend = None
 
     # Check authorization
     if not config.project.public and not authorization:
@@ -310,16 +310,16 @@ async def connect(sid, environ):
         return False
     elif authorization and config.project.id and config.project.backend == "cloud":
         # Create the cloud client
-        client = CloudClient(
+        backend = CloudBackend(
             project_id=config.project.id,
             access_token=authorization,
         )
-        is_project_member = await client.is_project_member()
+        is_project_member = await backend.is_project_member()
         if not is_project_member:
             logger.error("Connection refused: You are not a member of this project")
             return False
     elif config.project.backend == "local":
-        client = LocalClient()
+        backend = LocalBackend()
 
     # Check user env
     if config.project.user_env:
@@ -358,7 +358,7 @@ async def connect(sid, environ):
         "id": sid,
         "emit": emit_fn,
         "ask_user": ask_user_fn,
-        "client": client,
+        "backend": backend,
         "user_env": user_env,
         "should_stop": False,
     }  # type: Session
@@ -427,7 +427,7 @@ async def process_message(session: Session, author: str, input_str: str):
                 }
             )
 
-        await Message(author=author, content=input_str).send()
+        # await Message(author=author, content=input_str).send()
     except InterruptedError:
         pass
     except Exception as e:
