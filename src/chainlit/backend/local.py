@@ -14,6 +14,7 @@ from chainlit.config import config
 from chainlit.element import mime_to_ext, Pyplot, Text, Image
 from chainlit.message import Message, ErrorMessage
 
+
 class LocalBackend(BaseBackend):
     conversation_id: Optional[str] = None
     lock: asyncio.Lock
