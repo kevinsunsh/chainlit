@@ -426,8 +426,9 @@ async def process_message(session: Session, author: str, input_str: str):
                     "authorIsUser": True,
                 }
             )
-
-        # await Message(author=author, content=input_str).send()
+        if config.code.on_message:
+            """Call the on_message function provided by the developer."""
+            await config.code.on_message(input_str)
     except InterruptedError:
         pass
     except Exception as e:

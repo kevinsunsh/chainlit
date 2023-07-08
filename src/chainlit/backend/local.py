@@ -5,20 +5,19 @@ import os
 
 import asyncio
 import aiofiles
-import aiohttp
-
 from chainlit.backend.base import PaginatedResponse, PageInfo
 
 from .base import BaseBackend
 
 from chainlit.logger import logger
 from chainlit.config import config
-from chainlit.element import mime_to_ext
-
+from chainlit.element import mime_to_ext, Pyplot, Text, Image
+from chainlit.message import Message, ErrorMessage
 
 class LocalBackend(BaseBackend):
     conversation_id: Optional[str] = None
     lock: asyncio.Lock
+    task_type: Optional[str] = None
 
     def __init__(self):
         self.lock = asyncio.Lock()
@@ -150,20 +149,6 @@ class LocalBackend(BaseBackend):
         variables["conversationId"] = c_id
 
         self.before_write(variables)
-
-        body = {"message": variables["content"]}
-
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                f"{config.chainlit_server}/chat",
-                json=body,
-                headers=self.headers,
-            ) as r:
-                if not r.ok:
-                    reason = await r.text()
-                    logger.error(f"Failed to chat with backend: {reason}")
-                    return None
-                json_res = await r.json()
 
         res = await Message.prisma().create(data=variables)
         return res.id
