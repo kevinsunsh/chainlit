@@ -139,8 +139,6 @@ class ChainlitConfig:
     root = APP_ROOT
     # Chainlit server URL. Used only for cloud features
     chainlit_server: str
-    # The url of the deployed app. Only set if the app is deployed.
-    chainlit_prod_url = chainlit_prod_url
 
     run: RunSettings
     ui: UISettings
@@ -239,7 +237,6 @@ def load_config():
 
     config = ChainlitConfig(
         chainlit_server=chainlit_server,
-        chainlit_prod_url=chainlit_prod_url,
         run=RunSettings(),
         **settings,
     )
