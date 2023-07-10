@@ -74,11 +74,6 @@ def run_chainlit(target: str):
     envvar="DEBUG",
     help="Set the log level to debug",
 )
-@click.option(
-    "--db",
-    type=click.Choice(["cloud", "local"]),
-    help="Useful to control database mode when running CI.",
-)
 @click.option("--host", help="Specify a different host to run the server on")
 @click.option("--port", help="Specify a different port to run the server on")
 def chainlit_run(target, debug, host, port):
