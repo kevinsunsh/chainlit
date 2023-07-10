@@ -24,7 +24,7 @@ from starlette.middleware.cors import CORSMiddleware
 import asyncio
 
 from chainlit.context import emitter_var, loop_var
-from chainlit.config import config, load_module, reload_config
+from chainlit.config import config, load_module, reload_config, DEFAULT_HOST
 from chainlit.session import Session, sessions
 from chainlit.user_session import user_sessions
 from chainlit.backend.cloud import CloudBackend
@@ -46,7 +46,9 @@ from chainlit.types import (
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    url = f"{config.chainlit_server}"
+    host = config.run.host
+    port = config.run.port
+    url = f"http://{host}:{port}"
 
     logger.info(f"Your app is available at {url}")
 
