@@ -67,22 +67,6 @@ def run_chainlit(target: str):
 @cli.command("run")
 @click.argument("target", required=True, envvar="RUN_TARGET")
 @click.option(
-    "-w",
-    "--watch",
-    default=False,
-    is_flag=True,
-    envvar="WATCH",
-    help="Reload the app when the module changes",
-)
-@click.option(
-    "-h",
-    "--headless",
-    default=False,
-    is_flag=True,
-    envvar="HEADLESS",
-    help="Will prevent to auto open the app in the browser",
-)
-@click.option(
     "-d",
     "--debug",
     default=False,
@@ -91,43 +75,21 @@ def run_chainlit(target: str):
     help="Set the log level to debug",
 )
 @click.option(
-    "-c",
-    "--ci",
-    default=False,
-    is_flag=True,
-    envvar="CI",
-    help="Flag to run in CI mode",
-)
-@click.option(
     "--db",
     type=click.Choice(["cloud", "local"]),
     help="Useful to control database mode when running CI.",
 )
 @click.option("--host", help="Specify a different host to run the server on")
 @click.option("--port", help="Specify a different port to run the server on")
-def chainlit_run(target, watch, headless, debug, ci, db, host, port):
+def chainlit_run(target, debug, host, port):
     if host:
         os.environ["CHAINLIT_HOST"] = host
     if port:
         os.environ["CHAINLIT_PORT"] = port
-    if ci:
-        logger.info("Running in CI mode")
-
-        if db:
-            config.project.database = db
-
-        config.project.enable_telemetry = False
-        from chainlit.cli.mock import mock_openai
-
-        mock_openai()
-
     else:
         trace_event("chainlit run")
 
-    config.run.headless = headless
     config.run.debug = debug
-    config.run.ci = ci
-    config.run.watch = watch
 
     run_chainlit(target)
 

@@ -95,8 +95,7 @@ export function runSpec(test: string) {
 
 export async function runChainlit(dir: string, file: string, localDb = false) {
   return new Promise((resolve, reject) => {
-    // Headless + CI mode
-    const options = ["run", file, "-h", "-c"];
+    const options = ["run", file];
 
     if (localDb) {
       options.push("--db");

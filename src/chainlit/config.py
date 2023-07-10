@@ -72,10 +72,7 @@ class RunSettings:
     module_name: Optional[str] = None
     host: str = DEFAULT_HOST
     port: int = DEFAULT_PORT
-    headless: bool = False
-    watch: bool = False
     debug: bool = False
-    ci: bool = False
 
 
 @dataclass_json

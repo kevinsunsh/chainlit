@@ -52,69 +52,17 @@ async def lifespan(app: FastAPI):
 
     logger.info(f"Your app is available at {url}")
 
-    if not config.run.headless:
-        # Add a delay before opening the browser
-        await asyncio.sleep(1)
-        webbrowser.open(url)
-
     if config.project.backend == "local":
         from prisma import Client, register
 
         client = Client()
         register(client)
         await client.connect()
-
-    watch_task = None
-    stop_event = asyncio.Event()
-
-    if config.run.watch:
-
-        async def watch_files_for_changes():
-            extensions = [".py"]
-            files = ["chainlit.md", "config.toml"]
-            async for changes in awatch(config.root, stop_event=stop_event):
-                for change_type, file_path in changes:
-                    file_name = os.path.basename(file_path)
-                    file_ext = os.path.splitext(file_name)[1]
-
-                    if file_ext.lower() in extensions or file_name.lower() in files:
-                        logger.info(
-                            f"File {change_type.name}: {file_name}. Reloading app..."
-                        )
-
-                        try:
-                            reload_config()
-                        except Exception as e:
-                            logger.error(f"Error reloading config: {e}")
-                            break
-
-                        # Reload the module if the module name is specified in the config
-                        if config.run.module_name:
-                            try:
-                                load_module(config.run.module_name)
-                            except Exception as e:
-                                logger.error(f"Error reloading module: {e}")
-                                break
-
-                        await socket.emit("reload", {})
-
-                        break
-
-        watch_task = asyncio.create_task(watch_files_for_changes())
-
     try:
         yield
     finally:
         if config.project.database == "local":
             await client.disconnect()
-        if watch_task:
-            try:
-                stop_event.set()
-                watch_task.cancel()
-                await watch_task
-            except asyncio.exceptions.CancelledError:
-                pass
-
 
 root_dir = os.path.dirname(os.path.abspath(__file__))
 build_dir = os.path.join(root_dir, "frontend/dist")
