@@ -345,7 +345,7 @@ class CloudBackend(BaseBackend):
 
         async with aiohttp.ClientSession() as session:
             async with session.post(
-                f"{config.chainlit_server}{path}",
+                f"{config.chainlit_server}/{path}",
                 json=body,
                 headers=self.headers,
             ) as r:

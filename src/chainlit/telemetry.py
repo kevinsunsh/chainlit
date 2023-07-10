@@ -21,13 +21,8 @@ def _build_resource(
     if resource:
         return resource
 
-    # If we are in production, use the URL as hostname
-    if config.chainlit_prod_url:
-        host_name = config.chainlit_prod_url
-    # Hash the local hostname to avoid leaking it.
-    else:
-        host_name = gethostname()
-        host_name = hashlib.sha256(host_name.encode("UTF-8")).hexdigest()
+    host_name = gethostname()
+    host_name = hashlib.sha256(host_name.encode("UTF-8")).hexdigest()
 
     attrs = {"host.name": host_name}
 

@@ -61,20 +61,13 @@ hide_cot = false
 generated_by = "{__version__}"
 """
 
-chainlit_prod_url = os.environ.get("CHAINLIT_PROD_URL")
-chainlit_server = "http://0.0.0.0:9000"
-
-
-DEFAULT_HOST = "0.0.0.0"
-DEFAULT_PORT = 8000
-
+chainlit_server = os.environ.get("CHAT_AGENT_BASE_URL", "http://0.0.0.0:9000")
 
 @dataclass()
 class RunSettings:
     # Name of the module (python file) used in the run command
     module_name: Optional[str] = None
-    host: str = DEFAULT_HOST
-    port: int = DEFAULT_PORT
+    host: str = chainlit_server
     headless: bool = False
     watch: bool = False
     debug: bool = False
@@ -142,8 +135,6 @@ class ChainlitConfig:
     root = APP_ROOT
     # Chainlit server URL. Used only for cloud features
     chainlit_server: str
-    # The url of the deployed app. Only set if the app is deployed.
-    chainlit_prod_url = chainlit_prod_url
 
     run: RunSettings
     ui: UISettings
@@ -242,7 +233,6 @@ def load_config():
 
     config = ChainlitConfig(
         chainlit_server=chainlit_server,
-        chainlit_prod_url=chainlit_prod_url,
         run=RunSettings(),
         **settings,
     )

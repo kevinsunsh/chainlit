@@ -34,10 +34,7 @@ def cli():
 
 # Define the function to run Chainlit with provided options
 def run_chainlit(target: str):
-    host = os.environ.get("CHAINLIT_HOST", DEFAULT_HOST)
-    port = int(os.environ.get("CHAINLIT_PORT", DEFAULT_PORT))
-    config.run.host = host
-    config.run.port = port
+    config.run.host = os.environ.get("CHAT_AGENT_BASE_URL", "http://0.0.0.0:9000")
 
     check_file(target)
     # Load the module provided by the user
